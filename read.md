@@ -7,11 +7,117 @@ If two processes try to modify same data the data may be corrupted. To avoid thi
 # Background
 For this problem there are three types of solution
 
-# 1. First-Readers
+## 1. First-Readers
 In this solution basically the readers were given priority, i.e. first readers were allowed to access the critical section. If there were no readers then writers will be given access to modify the data in critical section in mutual exclusion. In this solution we may get a situation that the writers may starve due to continuous incoming readers.
 
-# 2. Second-Readers
-This solution is quite opposite to previous one. In this solution writers were given priority to access the critical section. If there were no writers then readers were given access to read the data in critical section. Similar to previous one we will get a situation where readers may starve because of priority given to readers
+## Implementation :
+
+Variables used for implementation are 
+Mutex = Semaphore(1); // to ensure that no other reader will execute entry section while a present reader is in it i.e to ensure mutual exclusion .
+Int Readerscount = 0; // number of reader processes in critical section initialized to 0;
+Resource = Semaphore(1); // used by both readers and writers to lock resource.
+
+### Pseudo Code :
+### Reader :
+Do{
+wait(mutex);
+Readerscount = Readerscount+1;
+if(Readerscount==1)  wait(resource);  //if it is first reader it reserves resource for other readers by locking resource from writers
+signal(mutex);
+
+Critical section
+
+
+wait(mutex);
+Readerscount = Readerscount-1;
+if(readerscount==0) signal(resource);// If it is last reader unlock resource and make it available for writers.
+signal(mutex);
+}while(true)
+
+### Writer : 
+Do{
+wait(resource);   //request for resource and if granted lock the resource as no writer or reader can enter if writer is in CS
+
+Critical section
+
+
+signal(resource);  //release the shared resource
+}while(true);
+
+
+
+## Explanation : 
++ For a reader before it enters critical section it should go through entry section. To avoid race conditions every reader which enters the entry section will lock the entry section for themselves until they are done with it, with the help of semaphore mutex.
++ Locking is done with wait(mutex) and unlocking with signal(mutex).
++ The same is valid for the exit section.
++ Once the first reader is in entry section it locks the resource preventing other writers from accessing it.
++ Other readers can use the resource but the last reader must unlock the resource making it available for writers.
++ For a writer it waits for unlocking of the resource and once all the readers are done it then locks the resource and enters the critical section avoiding readers from accessing it.
++ In this solution a stream of readers can stop all the writers and starve them because after the first reader locks the resource, no writer can use it, before lock gets released and it will only be released by the last reader. 
+Hence this solution is not fair.
+
+## 2.Second Readers-Writers Problem :
+
+
+This solution is quite opposite to previous one. In this solution writers were given priority to access the critical section. If there were no writers then readers were given access to read the data in critical section. Similar to previous one we will get a situation where readers may starve because of priority given to readers.
+
+As per the statement writer is given higher priority compared to reader.
+
+
+## Implementation :
+Variables used for implementation are 
+Int Readerscount = 0;  // number of reader processes in critical section initialized to 0;
+Int Writerscount = 0; //number of writer processes in critical section initialized to 0;
+Readmutex = Semaphore(1); // to ensure that no other reader will execute readers entry section while a present reader is in it i.e to ensure mutual exclusion
+Writemutex = Semaphore(1); // to ensure that no other writer will execute writers entry section while a present writer is in it i.e to ensure mutual exclusion
+Resource = Semaphore(1);
+R = Semaphore(1); // to lock readers for reserving space for other writers 
+## PseudoCode :
+### Reader :
+Do {
+wait(mutex);
+wait(readmutex); 
+Readerscount = Readerscount + 1;
+if(Readerscount == 1) wait(Resource); // if it is first reader lock the resource
+signal(readmutex); //release entry section for other readers
+signal(mutex); 
+
+Critical section
+
+ 
+wait(readmutex);
+Readerscount = Readerscount -1;
+if(Readerscount==0) signal(resource);//if it is last reader release the resource
+signal(readmutex);
+}while(true);
+(only another mutex lock is added )
+
+### Writer:
+
+Do{
+wait(writemutex); 
+Writerscount = Writerscount+1;
+if(Writerscount==1)  wait(mutex);  //if it is first writer then it locks critical section from other readers 
+signal(writemutex);
+wait(Resource) //lock the shared resource as no writer or reader can enter if writer is in CS
+
+Critical section
+
+signal(resource); //release the shared resource
+wait(writemutex);
+Writerscount = Writerscount-1;
+if(Writerscount==0) signal(mutex);// If it is last writer allow readers to enter critical section by unlocking resource
+signal(writemutex);
+}while(true)
+## Explanation :
++ Here preference is given to writers as readers have to lock and unlock mutex individually while writers don't need to.
++ The first writer will lock the mutex and then all subsequent writers can simply use the resource .The last writer must release the mutex semaphore,opening the gate for readers to try reading. 
++ The reader must wait for last writer to unlock the mutex and resource.
++ If a reader locks the mutex semaphore it indicates to writer that there is a reader in critical section.So the writer will wait for the reader to release the mutex and then the writer will immediately lock it .
++ Though, the writer will not be able to access the resource until the current reader has released the resource, after the reader is finished with the resource in the critical section.
++ A reader will know that there are no writers waiting for resource with mutex semaphore It enters critical section by releasing mutex..
++ As soon as a writer shows up, it will try to set the mutex and hang up there waiting for the current reader to release the mutex. It will then take control over the resource as soon as the current reader is done reading and lock all future readers out. All subsequent readers will hang up at the mutex semaphore waiting for the writers to be finished with the resource and to open the gate by releasing mutex.
+
 
 # 3. Starve-Free
 In this solution we will avoid starvation by giving no priority to readers or writer. Now we are going to look a Starve-Free solution of Readers-Writers problem
