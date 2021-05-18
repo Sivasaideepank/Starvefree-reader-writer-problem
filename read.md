@@ -4,16 +4,16 @@ A Reader-Writer problem is a situation where multiple processes try to access so
 If two processes try to modify same data the data may be corrupted. To avoid this we have to synchronize the processes that try to access critical section. In the synchronization multiple readers can access the data without single writer or only single writer can access the data.
 
 
-#Background
+# Background
 For this problem there are three types of solution
 
-#1. First-Readers
+# 1. First-Readers
 In this solution basically the readers were given priority, i.e. first readers were allowed to access the critical section. If there were no readers then writers will be given access to modify the data in critical section in mutual exclusion. In this solution we may get a situation that the writers may starve due to continuous incoming readers.
 
-#2. Second-Readers
+# 2. Second-Readers
 This solution is quite opposite to previous one. In this solution writers were given priority to access the critical section. If there were no writers then readers were given access to read the data in critical section. Similar to previous one we will get a situation where readers may starve because of priority given to readers
 
-#3. Starve-Free
+# 3. Starve-Free
 In this solution we will avoid starvation by giving no priority to readers or writer. Now we are going to look a Starve-Free solution of Readers-Writers problem
 
 The classical solution of the problem results in starvation of either reader or writer. In this solution,I have tried to propose a starve free solution. While proposing the solution only one assumption is made i.e. Semaphore preserves the first in first out(FIFO) order when locking and releasing theprocesses( Semaphore uses a FIFO queue to maintain the list of blocked processes)
@@ -27,7 +27,7 @@ struct Semaphore{
   FIFO_Queue* Q = new FIFO_Queue();
 }
     
-void wait(Semaphore *S,int* process_id){
+void Acquire(Semaphore *S,int* process_id){
   S->value--;
   if(S->value < 0){
   S->Q->push(process_id);
@@ -37,7 +37,7 @@ void wait(Semaphore *S,int* process_id){
   }
 }
     
-void signal(Semaphore *S){
+void Release(Semaphore *S){
   S->value++;
   if(S->value <= 0){
   int* PID = S->Q->pop();
