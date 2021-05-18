@@ -263,4 +263,6 @@ Before accessing the critical section any reader or writer have to first acquire
 ### Progress Requirement
 The code is structured so that there are no chances for deadlock and also the readers and writers takes a finite amount of time to pass through the critical section and also at the end of each reader writer code they release the semaphore for other processes to enter into critical section.
 
-
+## References
+* [wikipedia:Readers–writers problem](https://en.wikipedia.org/wiki/Readers%E2%80%93writers_problem)
+* [arxiv.org](https://arxiv.org/abs/1309.4507)
