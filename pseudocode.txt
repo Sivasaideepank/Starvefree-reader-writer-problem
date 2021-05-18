@@ -1,0 +1,64 @@
+// Writing Process in CRITICAL SECTION:
+
+		 Acquire(mutex); 
+			 if( (current_readers + waiting_readers) == 0){
+				  Release(writeaccess_semaphore);  
+				 current_writers += 1; 
+			 }
+			  
+			else{
+				 waiting_writers += 1; 
+			}
+		  
+		Release(mutex);
+	   Acquire(writeaccess_semaphore);  
+
+	   
+	   /*
+
+	   CRITICAL SECTION
+	     
+	   */
+
+	   Acquire(mutex);
+	   current_writers = current_writers - 1; 
+	   if( waiting_readers>0 && current_writers == 0){
+			while(waiting_readers > 0){
+			   current_readers += 1;  
+			   waiting_readers -= 1;
+			   Release(readaccess_semaphore);  
+			}
+	   }
+	   Release(mutex);
+
+// Reading process in CRITICAL SECTION:
+
+	    Acquire(mutex); 
+			 if( (current_writers + waiting_writers) == 0){
+				 Release(readaccess_semaphore);  
+				 current_readers += 1; 
+			 }
+			 else{
+				 waiting_readers += 1; 
+			 }
+
+		Release(mutex);
+	   Acquire(readaccess_semaphore);  
+
+	   
+	   /*
+	   
+	   CRITICAL SECTION
+	   
+	   */
+
+	   Acquire(mutex);
+	   current_readers = current_readers - 1; 
+	   if(waiting_writers>0 && current_readers == 0){
+			while(waiting_writers > 0){
+			   current_writers += 1;  
+			   waiting_writers -= 1;
+			   Release(writeaccess_semaphore);  
+			}
+	   }
+	   Release(mutex);
